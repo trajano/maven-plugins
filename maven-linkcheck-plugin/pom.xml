@@ -139,6 +139,11 @@ under the License.
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-component-annotations</artifactId>
+      <version>1.7.1</version>
+    </dependency>
 
     <!-- linkcheck -->
     <dependency>
@@ -180,6 +185,11 @@ under the License.
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-component-metadata</artifactId>
+        <version>1.7.1</version>
+      </plugin>
       <plugin>
         <groupId>net.trajano.mojo</groupId>
         <artifactId>cleanpom-maven-plugin</artifactId>
