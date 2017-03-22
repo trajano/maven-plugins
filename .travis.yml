@@ -1,0 +1,51 @@
+branches:
+  only:
+  - trajano-linkcheck
+  - "/^linkcheck-maven-plugin-[\\d\\.]+$/"
+language: java
+jdk:
+- oraclejdk8
+sudo: false
+cache:
+  directories:
+  - "$HOME/.m2/repository"
+  - "$HOME/.sonar/cache"
+addons:
+  apt:
+    packages:
+    - graphviz
+  ssh_known_hosts:
+  - github.com
+  - site.trajano.net:6022
+  sonarqube:
+    organization: trajano
+    branches:
+    - trajano-linkcheck
+    token:
+      secure: TaP68o3pHBzYy4eequ4k4YsZVnXy8pVVEGqfPOQqf2G9xPQo/l3OdVQm3SZnzt9TYuhMSs+V3YU47Hl+WdK796IasXXmmJQlCTwVTq1RawaCO4VbzV6LpiL9ZXQhdkkN6EknIPT97oEwkHH0z0cVgQsxRu7inRIVzqHpctmGB0S8NinBAn3o0QJKMc6wAJc/LALhGIbM2DBcRvUiZLBgi/hwhpEkT9DYNX1bUBmi9NZeD8nQU58VuzGbXLc69oR3HBpkl21E76Yv1elF/tfPmlZStTesBEjUzeJo05+hyEkvIY4Q9W3xgB+IXqeZegqgfUy3ZN8kc1FpcIWMY3RGj+5pVud6om3zRH2DKiurLdp8KstW3Wjm6SPWqaitGYvRSWvrISyZctNNUv2VfJHNlyv9c8n31TPMDNQf6H4n5I7tbhzyooQB06NOKb1e78rjgKiVAUseIVqbPOJD2iyfVQSGijf4Jl13Gz7IN7O6jgWz0W6JUp6q8w8Jwpq3Zk9NdQg9RdGNKDgpzHEHMOisvsGkVO8Txe2j6tDwmTfdCEwIXcopO1Yarm7wJUVxfDdMlwAMQoXQ753zPi8z49k+aFUnwdT3jquweOQqIwLXtyG9uDhvU5y4gGn++ozBlFrRDBZZ6FlzDrVGyM+Wxi0um6n80CebuU+RMJiaNaJ72m8=
+env:
+  global:
+  - secure: hHsfYykGJBwrSCAYS6tveOnZiJlYAUbUWH3ZnTjIkq093JBr20A6zK2QDaPhxSkI/8iyzgPXeZtF8Q03GrpWwT5y/NKU8XADFEW9tVvfqEFAY1pgHXS/B6F0JZgPSxROrz5VH7P0x/tWtFdOuMHy+6M/I0Be2kQGFECtMP3LbZjKlv8U2AYtYt4pUy1L6hWN/BaECzAMuZBPaCV3gaHYx5j8m6Ht0kQv56clS3vmtwalS6JmAlFloCdVCDx+8y7ZNDj+1RhbWQ2M+ESPgsxaziVlteOt1eCuSbq4HGGweTfcUZebkT0AdqcZHybSKIhDbbzGY9JseUyTzSiQoB6SQR2+GB6E3GEoa0s6dGMQ+aMrERuu4kvGH6fCImR0XPNZH1AawXhYdxrPv9meVMBerwfWhf9cdBCmqPVDzM84ny7xdspkjIGgMa3+QgJZI4xnmag1XFsDhHS0oWGmkP2CcQ4Qw7Lu2+KzDwGSsxgg4+wDLEEanjfb08V/FjHusmEaRiJ2yYsKzv2ovvoPF8Ctp3eqhnq32kvH9jdiSPoRMU4iCmGPqFxZh9vef9rIkY23W4Ij70JVdy+m7oN4jOfEEmj2uEVUFpQiX3QXn+keyV3cSsMvh7QTubBiRu6Hb/SsOIl77XYYdt666xoo9O2iJqmbDcK5czvZ+W73OSxUdsM=
+before_install:
+- openssl aes-256-cbc -K $encrypted_a7ac888384be_key -iv $encrypted_a7ac888384be_iv
+  -in deploy-keys.tar.enc -out deploy-keys.tar -d
+install:
+- tar xf deploy-keys.tar -C $HOME && chmod go-rwx -R $HOME/.m2 $HOME/.ssh
+- cd maven-linkcheck-plugin
+- mvn dependency:go-offline
+before_script:
+- mvn clean
+script:
+- mvn org.jacoco:jacoco-maven-plugin:prepare-agent verify site sonar:sonar
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: mvn deploy site-deploy
+  on:
+    branch: trajano-linkcheck
+- provider: script
+  skip_cleanup: true
+  script: printf 'scm.tag=%1s\nscm.url=scm:git:https://git@github.com/%2s.git' "${TRAVIS_TAG}"
+    "${TRAVIS_REPO_SLUG}" > release.properties && mvn release:perform
+  on:
+    tags: true
