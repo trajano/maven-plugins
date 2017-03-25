@@ -54,7 +54,7 @@ under the License.
     <site>
       <id>trajano-site</id>
       <name>Trajano Maven Sites</name>
-      <url>sftp://site.trajano.net:6022/s/doxia-linkcheck/</url>
+      <url>sftp://site.trajano.net:6022/s/${project.artifactId}/</url>
     </site>
   </distributionManagement>
 
